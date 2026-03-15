@@ -3,151 +3,190 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>祭祀公業廖維禎掃墓系統</title>
+    <title>祭祀公業廖維禎系統</title>
     <style>
         :root { --primary-red: #8E2424; --secondary-green: #285430; --bg-color: #F8F5F2; }
-        body { font-family: -apple-system, "Microsoft JhengHei", sans-serif; background: var(--bg-color); margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-        .card { background: white; padding: 25px; border-radius: 16px; box-shadow: 0 8px 25px rgba(0,0,0,0.1); width: 90%; max-width: 400px; border-top: 8px solid var(--primary-red); }
-        h2 { text-align: center; color: var(--primary-red); margin-bottom: 5px; font-size: 22px; }
-        .subtitle { text-align: center; color: #666; font-size: 14px; margin-bottom: 25px; border-bottom: 1px solid #EEE; padding-bottom: 15px; }
-        
-        /* 選單切換 */
-        .tab-container { display: flex; gap: 10px; margin-bottom: 20px; }
-        .tab-btn { flex: 1; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; background: #EEE; color: #666; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg-color); margin: 0; padding: 15px; display: flex; justify-content: center; }
+        .card { background: white; padding: 20px; border-radius: 16px; box-shadow: 0 8px 25px rgba(0,0,0,0.1); width: 100%; max-width: 400px; border-top: 8px solid var(--primary-red); }
+        h2 { text-align: center; color: var(--primary-red); margin: 0; }
+        .tab-container { display: flex; gap: 10px; margin: 20px 0; }
+        .tab-btn { flex: 1; padding: 10px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; background: #EEE; color: #666; }
         .tab-btn.active { background: var(--primary-red); color: white; }
         .tab-btn.reg-active { background: var(--secondary-green); color: white; }
-
-        /* 表單內容 */
+        
         .page { display: none; }
         .page.active { display: block; }
-        .input-group { margin-bottom: 15px; text-align: left; }
-        label { display: block; margin-bottom: 5px; font-size: 14px; font-weight: bold; }
-        input { width: 100%; padding: 12px; border: 2px solid #EEE; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
         
-        /* 按鈕顏色區分 */
-        .btn-checkin { width: 100%; padding: 14px; background: var(--primary-red); color: white; border: none; border-radius: 8px; font-size: 17px; font-weight: bold; cursor: pointer; }
-        .btn-register { width: 100%; padding: 14px; background: var(--secondary-green); color: white; border: none; border-radius: 8px; font-size: 17px; font-weight: bold; cursor: pointer; }
-        
-        .log-section { margin-top: 20px; font-size: 13px; color: #888; background: #F9F9F9; padding: 10px; border-radius: 8px; }
-        ul { padding-left: 20px; margin: 5px 0; }
+        .input-group { margin-bottom: 12px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px; }
+        input, select { width: 100%; padding: 12px; border: 2px solid #EEE; border-radius: 8px; box-sizing: border-box; font-size: 16px; outline: none; }
+        input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+        .btn { width: 100%; padding: 14px; border: none; border-radius: 8px; font-size: 17px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn-red { background: var(--primary-red); color: white; }
+        .btn-green { background: var(--secondary-green); color: white; }
+
+        .family-list { background: #F9F9F9; border-radius: 8px; padding: 10px; margin-top: 15px; border: 1px solid #DDD; }
+        .family-item { display: flex; align-items: center; padding: 12px; border-bottom: 1px solid #EEE; gap: 12px; }
+        .hidden { display: none; }
     </style>
 </head>
 <body>
 
 <div class="card">
     <h2>祭祀公業廖維禎</h2>
-    <p class="subtitle">清明祭祖掃墓管理系統</p>
-
-    <div class="tab-container">
-        <button id="tab1" class="tab-btn active" onclick="showPage('checkin')">本人簽到</button>
-        <button id="tab2" class="tab-btn" onclick="showPage('register')">新成員登記</button>
+    
+    <div class="tab-container" id="mainTabs">
+        <button class="tab-btn active" onclick="showPage('checkin')">快速簽到</button>
+        <button class="tab-btn" onclick="showPage('register')">成員登記</button>
     </div>
 
     <div id="checkinPage" class="page active">
-        <div class="input-group">
-            <label>派下員姓名</label>
-            <input type="text" id="name" placeholder="請輸入全名">
+        <div id="step1">
+            <div class="input-group">
+                <label>操作者姓名 (本人)</label>
+                <input type="text" id="myName" placeholder="請輸入全名">
+            </div>
+            <div class="input-group">
+                <label>身分證字號</label>
+                <input type="password" id="myId" placeholder="輸入 10 碼身分證" maxlength="10" oninput="this.value = this.value.toUpperCase()">
+            </div>
+            <button class="btn btn-red" id="verifyBtn" onclick="verifyAndGetFamily()">尋找本人與家人</button>
         </div>
-        <div class="input-group">
-            <label>身分證字號</label>
-            <input type="password" id="id" placeholder="英文字母需大寫" maxlength="10" oninput="this.value = this.value.toUpperCase()">
-        </div>
-        <button class="btn-checkin" onclick="handleAction('checkin')">確認驗證並簽到</button>
-        <div class="log-section">
-            <div id="historyTitle">最近成功簽到紀錄：</div>
-            <ul id="recordList"></ul>
+
+        <div id="step2" class="hidden">
+            <p style="font-weight: bold; color: var(--secondary-green);">驗證成功！請勾選到場成員：</p>
+            <div id="familyContainer" class="family-list"></div>
+            <button class="btn btn-green" id="batchBtn" onclick="submitBatchCheckin()">提交簽到</button>
+            <button class="btn" style="background:#EEE;" onclick="location.reload()">返回</button>
         </div>
     </div>
 
     <div id="registerPage" class="page">
-        <p style="font-size: 13px; color: #8E2424; margin-bottom: 15px;">首次參加或名單查無此人時，請在此登記資料。</p>
+        <div class="input-group"><label>姓名</label><input type="text" id="regName" placeholder="全名"></div>
+        <div class="input-group"><label>身分證字號</label><input type="text" id="regID" placeholder="10碼" maxlength="10" oninput="this.value = this.value.toUpperCase()"></div>
         <div class="input-group">
-            <label>派下員姓名</label>
-            <input type="text" id="regName" placeholder="請輸入姓名">
+            <label>身分類別</label>
+            <select id="regIdentity" onchange="updateRelativeLabel()">
+                <option value="廖姓男派下員">廖姓男派下員</option>
+                <option value="配偶">配偶</option>
+                <option value="廖姓女派下員">廖姓女派下員</option>
+            </select>
         </div>
         <div class="input-group">
-            <label>身分證字號</label>
-            <input type="text" id="regID" placeholder="請輸入身分證字號" maxlength="10" oninput="this.value = this.value.toUpperCase()">
+            <label>輩份 (僅數字)</label>
+            <input type="number" id="regGen" inputmode="numeric" placeholder="例如: 24" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
         </div>
-        <button class="btn-register" onclick="handleAction('register')">確認加入派下員名冊</button>
+        <div class="input-group">
+            <label>所屬房別</label>
+            <select id="regHouse">
+                <option value="">請選擇</option>
+                <option value="大房">大房</option><option value="二房">二房</option><option value="三房">三房</option>
+                <option value="四房">四房</option><option value="五房">五房</option><option value="六房">六房</option>
+                <option value="七房">七房</option><option value="八房">八房</option><option value="九房">九房</option>
+            </select>
+        </div>
+        <div class="input-group">
+            <label id="relativeLabel">父親姓名</label>
+            <input type="text" id="regFather" placeholder="請輸入全名">
+        </div>
+        <button class="btn btn-green" id="regBtn" onclick="handleRegister()">確認加入名冊</button>
     </div>
 </div>
 
 <script>
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbyFid2ikrDBYtJlBZ-m96vV066fe1eSO-ZCJoHXyxyDcJzo_SApiyrpQLyviHw_hqI3wQ/exec";
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbyFid2ikrDBYtJlBZ-m96vV066fe1eSO-ZCJoHXyxyDcJzo_SApiyrpQLyviHw_hqI3wQ/exec"; // <--- 請替換
 
-    // 頁面切換邏輯
     function showPage(page) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active', 'reg-active'));
-        
         if(page === 'checkin') {
             document.getElementById('checkinPage').classList.add('active');
-            document.getElementById('tab1').classList.add('active');
+            document.querySelectorAll('.tab-btn')[0].classList.add('active');
         } else {
             document.getElementById('registerPage').classList.add('active');
-            document.getElementById('tab2').classList.add('reg-active');
+            document.querySelectorAll('.tab-btn')[1].classList.add('reg-active');
         }
     }
 
-    // 簽到歷史載入
-    window.onload = () => {
-        const last = localStorage.getItem('liao_name');
-        if (last) document.getElementById('name').value = last;
-        const history = JSON.parse(localStorage.getItem('liao_logs') || '[]');
-        history.forEach(n => {
-            const li = document.createElement('li');
-            li.textContent = n;
-            document.getElementById('recordList').appendChild(li);
-        });
-    };
+    function updateRelativeLabel() {
+        const identity = document.getElementById('regIdentity').value;
+        const label = document.getElementById('relativeLabel');
+        label.textContent = (identity === '配偶') ? '丈夫姓名' : '父親姓名';
+    }
 
-    // 統一處理簽到與登記
-    async function handleAction(type) {
-        if (type === 'checkin') {
-            const name = document.getElementById('name').value.trim();
-            const id = document.getElementById('id').value.trim().toUpperCase();
-            if (!name || id.length !== 10) return alert('請完整填寫姓名與身分證！');
-            
-            const time = new Date().toLocaleString('zh-TW', {hour12:false});
-            const resp = await fetch(`${GAS_URL}?name=${encodeURIComponent(name)}&id=${encodeURIComponent(id)}&time=${encodeURIComponent(time)}`);
-            const result = await resp.text();
+    // --- 簽到邏輯 ---
+    let currentUser = null;
+    async function verifyAndGetFamily() {
+        const name = document.getElementById('myName').value.trim();
+        const id = document.getElementById('myId').value.trim().toUpperCase();
+        if(!name || id.length !== 10) return alert('請輸入完整資訊');
 
-            if (result.includes("SUCCESS")) {
-                alert('✅ 簽到成功！感念祖德。');
-                localStorage.setItem('liao_name', name);
-                saveLog(name);
-                document.getElementById('id').value = "";
+        document.getElementById('verifyBtn').disabled = true;
+        try {
+            const resp = await fetch(`${GAS_URL}?mode=getFamily&name=${encodeURIComponent(name)}&id=${encodeURIComponent(id)}`);
+            const result = await resp.json();
+            if(result === "NOT_FOUND") {
+                alert('找不到資料，請確認身分證或先進行登記。');
+                document.getElementById('verifyBtn').disabled = false;
             } else {
-                alert('❌ 驗證失敗：資料不符或尚未登記。');
+                currentUser = result.user;
+                renderFamilyList(result.family);
+                document.getElementById('step1').classList.add('hidden');
+                document.getElementById('step2').classList.remove('hidden');
             }
-        } else {
-            const name = document.getElementById('regName').value.trim();
-            const id = document.getElementById('regID').value.trim().toUpperCase();
-            if (!name || id.length !== 10) return alert('請確認姓名與身分證格式！');
-
-            const formData = new URLSearchParams();
-            formData.append('name', name);
-            formData.append('id', id);
-            
-            const resp = await fetch(GAS_URL, { method: 'POST', body: formData });
-            const result = await resp.text();
-
-            if (result.includes("REGISTER_SUCCESS")) {
-                alert('🎉 登記成功！請切換到「本人簽到」頁面進行簽到。');
-                showPage('checkin');
-                document.getElementById('name').value = name;
-            } else if (result.includes("ALREADY_EXISTS")) {
-                alert('⚠️ 該身分證已登記過，不需重複辦理。');
-            }
-        }
+        } catch (e) { alert('系統連線錯誤'); document.getElementById('verifyBtn').disabled = false; }
     }
 
-    function saveLog(name) {
-        let history = JSON.parse(localStorage.getItem('liao_logs') || '[]');
-        if(!history.includes(name)) history.unshift(name);
-        localStorage.setItem('liao_logs', JSON.stringify(history.slice(0, 3)));
-        location.reload();
+    function renderFamilyList(familyData) {
+        const container = document.getElementById('familyContainer');
+        let html = `<div class="family-item"><input type="checkbox" id="m_self" value="${currentUser.name}" data-id="${currentUser.id}" checked><label for="m_self">本人：${currentUser.name}</label></div>`;
+        familyData.forEach((m, i) => {
+            html += `<div class="family-item"><input type="checkbox" id="m_${i}" value="${m.name}" data-id="${m.id}"><label for="m_${i}">${m.identity}：${m.name}</label></div>`;
+        });
+        container.innerHTML = html;
+    }
+
+    async function submitBatchCheckin() {
+        const checked = document.querySelectorAll('#familyContainer input:checked');
+        const names = []; const ids = [];
+        checked.forEach(cb => { names.push(cb.value); ids.push(cb.getAttribute('data-id')); });
+
+        const btn = document.getElementById('batchBtn');
+        btn.disabled = true;
+        const time = new Date().toLocaleString('zh-TW', { hour12: false });
+        const url = `${GAS_URL}?mode=batchCheckin&proxy=${encodeURIComponent(currentUser.name)}&names=${encodeURIComponent(JSON.stringify(names))}&ids=${encodeURIComponent(JSON.stringify(ids))}&time=${encodeURIComponent(time)}`;
+
+        try {
+            const resp = await fetch(url);
+            if(await resp.text() === "SUCCESS") { alert('✅ 簽到完成！'); location.reload(); }
+        } catch (e) { alert('簽到失敗'); btn.disabled = false; }
+    }
+
+    // --- 登記邏輯 ---
+    async function handleRegister() {
+        const name = document.getElementById('regName').value.trim();
+        const id = document.getElementById('regID').value.trim().toUpperCase();
+        const identity = document.getElementById('regIdentity').value;
+        const gen = document.getElementById('regGen').value;
+        const house = document.getElementById('regHouse').value;
+        const father = document.getElementById('regFather').value.trim();
+
+        if(!name || id.length !== 10 || !gen || !house || !father) return alert('請填寫完整登記資訊');
+
+        const btn = document.getElementById('regBtn');
+        btn.disabled = true;
+        const formData = new URLSearchParams();
+        formData.append('name', name); formData.append('id', id); formData.append('identity', identity);
+        formData.append('generation', gen); formData.append('house', house); formData.append('father', father);
+
+        try {
+            await fetch(GAS_URL, { method: 'POST', body: formData });
+            alert('🎉 登記成功！現在可以進行簽到了。');
+            showPage('checkin');
+            document.getElementById('myName').value = name;
+            document.getElementById('myId').value = id;
+        } catch (e) { alert('登記失敗'); btn.disabled = false; }
     }
 </script>
 
